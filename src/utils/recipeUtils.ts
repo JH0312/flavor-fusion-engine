@@ -1,4 +1,3 @@
-
 import { Recipe, recipes } from "../data/recipes";
 
 // Convert ingredient string to lowercase and remove amounts
@@ -23,9 +22,15 @@ export const findMatchingRecipes = (userIngredients: string[]): Recipe[] => {
       )
     );
     
-    // Match if user has at least 60% of the required ingredients
-    const matchRatio = matchedIngredients.length / recipeIngredientNames.length;
-    return matchRatio >= 0.6;
+    // For few user ingredients, be more lenient with matching
+    if (userIngredients.length <= 3) {
+      // If user has 1-3 ingredients, show recipes where they have at least 1 ingredient
+      return matchedIngredients.length >= 1;
+    } else {
+      // For more ingredients, keep the 60% threshold
+      const matchRatio = matchedIngredients.length / recipeIngredientNames.length;
+      return matchRatio >= 0.6;
+    }
   });
 };
 
