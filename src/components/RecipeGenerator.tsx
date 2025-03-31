@@ -5,7 +5,7 @@ import { findMatchingRecipes, sortRecipesByMatch, getMissingIngredients } from "
 import RecipeCard from "./RecipeCard";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Check, X } from "lucide-react";
+import { Check, X, Clock, Users } from "lucide-react";
 
 interface RecipeGeneratorProps {
   ingredients: string[];
