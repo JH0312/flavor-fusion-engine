@@ -1,3 +1,4 @@
+
 import { Recipe, recipes } from "../data/recipes";
 
 // Convert ingredient string to lowercase and remove amounts
@@ -7,6 +8,8 @@ const normalizeIngredient = (ingredient: string): string => {
 
 // Find recipes that can be made with the available ingredients
 export const findMatchingRecipes = (userIngredients: string[]): Recipe[] => {
+  if (userIngredients.length === 0) return [];
+  
   const normalizedUserIngredients = userIngredients.map(normalizeIngredient);
   
   return recipes.filter(recipe => {
@@ -15,22 +18,15 @@ export const findMatchingRecipes = (userIngredients: string[]): Recipe[] => {
       normalizeIngredient(ing.name)
     );
     
-    // Calculate how many of the recipe ingredients the user has
-    const matchedIngredients = recipeIngredientNames.filter(
-      ingredientName => normalizedUserIngredients.some(userIng => 
-        userIng === ingredientName || ingredientName.includes(userIng)
+    // Check if any user ingredient partially matches any recipe ingredient
+    const hasAnyMatch = recipeIngredientNames.some(recipeIng => 
+      normalizedUserIngredients.some(userIng => 
+        recipeIng.includes(userIng) || userIng.includes(recipeIng)
       )
     );
     
-    // For few user ingredients, be more lenient with matching
-    if (userIngredients.length <= 3) {
-      // If user has 1-3 ingredients, show recipes where they have at least 1 ingredient
-      return matchedIngredients.length >= 1;
-    } else {
-      // For more ingredients, keep the 60% threshold
-      const matchRatio = matchedIngredients.length / recipeIngredientNames.length;
-      return matchRatio >= 0.6;
-    }
+    // Always return recipes that have at least one ingredient match
+    return hasAnyMatch;
   });
 };
 
@@ -45,15 +41,16 @@ export const sortRecipesByMatch = (
     const aIngredients = a.ingredients.map(ing => normalizeIngredient(ing.name));
     const bIngredients = b.ingredients.map(ing => normalizeIngredient(ing.name));
     
+    // Count total ingredient matches with more flexible matching
     const aMatches = aIngredients.filter(ing => 
       normalizedUserIngredients.some(userIng => 
-        userIng === ing || ing.includes(userIng)
+        ing.includes(userIng) || userIng.includes(ing)
       )
     ).length;
     
     const bMatches = bIngredients.filter(ing => 
       normalizedUserIngredients.some(userIng => 
-        userIng === ing || ing.includes(userIng)
+        ing.includes(userIng) || userIng.includes(ing)
       )
     ).length;
     
@@ -76,7 +73,7 @@ export const getMissingIngredients = (
     .filter(ing => {
       const normalizedName = normalizeIngredient(ing.name);
       return !normalizedUserIngredients.some(userIng => 
-        userIng === normalizedName || normalizedName.includes(userIng)
+        normalizedName.includes(userIng) || userIng.includes(normalizedName)
       );
     })
     .map(ing => ing.name);
