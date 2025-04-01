@@ -25,12 +25,12 @@ export const findMatchingRecipes = (userIngredients: string[]): Recipe[] => {
       )
     );
     
-    // Always return recipes that have at least one ingredient match
+    // Return recipes with any ingredient match, making the matching more inclusive
     return hasAnyMatch;
   });
 };
 
-// Sort recipes by how well they match the user's ingredients
+// Enhanced sorting to give preference to recipes with exact ingredient matches
 export const sortRecipesByMatch = (
   recipes: Recipe[], 
   userIngredients: string[]
@@ -41,23 +41,34 @@ export const sortRecipesByMatch = (
     const aIngredients = a.ingredients.map(ing => normalizeIngredient(ing.name));
     const bIngredients = b.ingredients.map(ing => normalizeIngredient(ing.name));
     
-    // Count total ingredient matches with more flexible matching
-    const aMatches = aIngredients.filter(ing => 
+    // Count exact ingredient matches (full word matches)
+    const aExactMatches = aIngredients.filter(ing => 
+      normalizedUserIngredients.some(userIng => ing === userIng)
+    ).length;
+    
+    const bExactMatches = bIngredients.filter(ing => 
+      normalizedUserIngredients.some(userIng => ing === userIng)
+    ).length;
+    
+    // Count partial ingredient matches
+    const aPartialMatches = aIngredients.filter(ing => 
       normalizedUserIngredients.some(userIng => 
         ing.includes(userIng) || userIng.includes(ing)
       )
     ).length;
     
-    const bMatches = bIngredients.filter(ing => 
+    const bPartialMatches = bIngredients.filter(ing => 
       normalizedUserIngredients.some(userIng => 
         ing.includes(userIng) || userIng.includes(ing)
       )
     ).length;
     
-    // Sort by match ratio (descending)
-    const aRatio = aMatches / aIngredients.length;
-    const bRatio = bMatches / bIngredients.length;
+    // Prioritize exact matches, but also consider partial matches
+    // Formula: (exactMatches * 2 + partialMatches) / totalIngredients
+    const aRatio = (aExactMatches * 2 + aPartialMatches) / aIngredients.length;
+    const bRatio = (bExactMatches * 2 + bPartialMatches) / bIngredients.length;
     
+    // Sort by match ratio in descending order (higher ratios first)
     return bRatio - aRatio;
   });
 };
